@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نوای لاله‌زار | سامانه ترانه‌های اصیل کوچه‌بازاری با پنل مدیریت</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts: Vazirmatn & Cinzel -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@200;300;400;500;600;700;800;900&family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'sans-serif'],
+                        serif: ['Cinzel', 'serif']
+                    },
+                    colors: {
+                        gold: {
+                            300: '#ffe082',
+                            400: '#ffd54f',
+                            500: '#ffca28',
+                            600: '#d4af37',
+                            700: '#b89628',
+                            glow: '#ff9800'
+                        },
+                        darkSurface: 'rgba(16, 17, 24, 0.85)',
+                        darkCard: 'rgba(24, 25, 36, 0.75)'
+                    },
+                    animation: {
+                        'spin-vinyl': 'spin 14s linear infinite',
+                        'pulse-glow': 'pulseGlow 3s infinite ease-in-out'
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { filter: 'drop-shadow(0 0 10px rgba(212, 175, 55, 0.35))' },
+                            '50%': { filter: 'drop-shadow(0 0 25px rgba(255, 152, 0, 0.65))' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            scrollbar-width: thin;
+            scrollbar-color: #d4af37 #11141c;
+        }
+        ::-webkit-scrollbar {
+            width: 7px;
+            height: 7px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0d0f17;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #b89628;
+            border-radius: 9999px;
+        }
+        body {
+            background: radial-gradient(circle at 10% 15%, #231508 0%, #0c0d14 55%, #050608 100%);
+            min-height: 100vh;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(18, 20, 29, 0.82);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.18);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.65);
+        }
+        .glass-card {
+            background: linear-gradient(135deg, rgba(28, 25, 23, 0.7) 0%, rgba(15, 17, 26, 0.85) 100%);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 202, 40, 0.14);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 152, 0, 0.5);
+            box-shadow: 0 15px 35px rgba(255, 152, 0, 0.2);
+        }
+        .vinyl-disc {
+            background: repeating-radial-gradient(
+                #111116,
+                #111116 2px,
+                #1e1f2b 4px,
+                #111116 6px
+            );
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(0,0,0,0.8);
+        }
+        .range-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.16);
+            border-radius: 9999px;
+            outline: none;
+            cursor: pointer;
+        }
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #ffca28;
+            box-shadow: 0 0 12px #ff9800;
+            cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+        .range-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.3);
+        }
+        .paused-spin {
+            animation-play-state: paused !important;
+        }
+    </style>
+</head>
+<body class="flex flex-col font-sans text-zinc-100 min-h-screen">
+
+    <header class="sticky top-0 z-40 glass-panel border-b border-gold-600/25 px-4 md:px-8 py-3.5">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            <!-- Brand -->
+            <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('home')">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-600 to-yellow-400 flex items-center justify-center text-zinc-950 font-bold shadow-lg shadow-amber-600/30">
+                    <i class="fa-solid fa-record-vinyl text-2xl animate-spin-vinyl" id="navLogoVinyl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black bg-gradient-to-r from-yellow-300 via-amber-400 to-rose-400 bg-clip-text text-transparent tracking-tight">
+                        نوای لاله‌زار
+                    </h1>
+                    <p class="text-[11px] text-amber-200/70 tracking-wide font-light hidden sm:block">
+                        کافه موسیقی مردمی و اصیل طهران قدیم
+                    </p>
+                </div>
+            </div>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center gap-3">
+                <button onclick="switchView('suggest')" class="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold border border-yellow-500/30 bg-zinc-900/60 hover:bg-amber-600/20 text-yellow-300 transition-all">
+                    <i class="fa-solid fa-microphone-lines text-amber-400"></i>
+                    <span>پیشنهاد ترانه</span>
+                </button>
+
+                <button id="vinylCrackleBtn" onclick="toggleVinylCrackle()" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border border-gold-600/30 bg-zinc-900/60 hover:bg-amber-600/20 text-yellow-300 transition-all" title="افکت صدای خش‌خش صفحه گرامافون">
+                    <i class="fa-solid fa-compact-disc"></i>
+                    <span class="hidden md:inline">خش‌خش گرام</span>
+                    <span id="crackleIndicator" class="w-2 h-2 rounded-full bg-zinc-600"></span>
+                </button>
+
+                <!-- Admin Button -->
+                <button onclick="handleAdminButtonClick()" class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-zinc-950 shadow-md shadow-amber-500/20 transition-all transform active:scale-95">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span id="adminBtnText">پنل مدیریت</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 md:px-8 py-6 w-full flex-1">
+        
+        <!-- ======================= HOME VIEW ======================= -->
+        <div id="homeView" class="space-y-8">
+            <!-- Hero Spotlight & Gramophone Section -->
+            <section class="glass-panel rounded-3xl p-6 md:p-8 relative overflow-hidden border border-yellow-500/20 shadow-2xl">
+                <div class="absolute -top-32 -left-32 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="flex flex-col lg:flex-row items-center justify-between gap-8 relative z-10">
+                    <div class="flex-1 text-right space-y-4">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold">
+                            <i class="fa-solid fa-champagne-glasses"></i> بزم ترانه‌های ماندگار دهه‌های ۳۰ تا ۶۰ طهران
+                        </div>
+                        <h2 class="text-2xl md:text-4xl font-black text-white leading-tight">
+                            نوستالژی خاطره‌انگیز کوچه و بازار
+                        </h2>
+                        <p class="text-sm md:text-base text-zinc-300 leading-relaxed max-w-2xl font-light">
+                            از نغمه‌های شورانگیز داوود مقامی و جواد یساری تا سوز صدای بانو سوسن و آغاسی؛ گنجینه‌ای جاودان با تنظیم ویژه و قابلیت پخش صوتی اختصاصی.
+                        </p>
+                        <div class="flex flex-wrap gap-3 pt-2">
+                            <button onclick="playRandomTrack()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-zinc-950 font-bold text-sm shadow-lg shadow-amber-500/25 flex items-center gap-2 transition-all transform active:scale-95">
+                                <i class="fa-solid fa-shuffle"></i> پخش تصادفی ترانه
+                            </button>
+                            <button onclick="switchView('suggest')" class="px-5 py-2.5 rounded-xl border border-zinc-700 hover:border-yellow-500/50 bg-zinc-900/60 text-yellow-100 text-sm font-medium flex items-center gap-2 transition-all">
+                                <i class="fa-solid fa-paper-plane text-amber-400"></i> پیشنهاد آهنگ به کافه
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Gramophone Vinyl Disc Player Visualizer -->
+                    <div class="w-full lg:w-96 flex flex-col items-center">
+                        <div class="relative w-56 h-56 md:w-64 md:h-64 rounded-full vinyl-disc flex items-center justify-center p-3 border-4 border-zinc-800 shadow-2xl animate-spin-vinyl paused-spin" id="heroVinylDisc">
+                            <div class="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-2 border-yellow-500/60 relative shadow-inner">
+                                <img id="heroVinylImg" src="https://placehold.co/300x300/201912/ffd54f?text=نوای+لاله‌زار" alt="Cover" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-black/25 flex items-center justify-center">
+                                    <div class="w-4 h-4 rounded-full bg-zinc-900 border-2 border-yellow-400"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mini Spectrum Canvas -->
+                        <div class="w-full bg-zinc-950/80 p-3 rounded-2xl border border-gold-600/25 shadow-inner mt-4">
+                            <div class="flex items-center justify-between text-[11px] text-amber-300/80 mb-1.5 font-mono">
+                                <span><i class="fa-solid fa-wave-square"></i> فرکانس صوتی آنالوگ</span>
+                                <span id="dspRate">44.1 kHz Hi-Fi</span>
+                            </div>
+                            <canvas id="spectrumCanvas" class="w-full h-16 rounded-lg bg-zinc-950"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Search, Filter & Tabs -->
+            <section class="glass-panel rounded-2xl p-4 md:p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 text-sm no-scrollbar">
+                    <button onclick="filterCategory('all')" class="cat-pill active-pill px-4 py-2 rounded-xl transition-all font-medium whitespace-nowrap bg-amber-500 text-zinc-950 shadow-md">
+                        همه ترانه‌ها
+                    </button>
+                    <button onclick="filterCategory('upbeat')" class="cat-pill px-4 py-2 rounded-xl transition-all font-medium whitespace-nowrap bg-zinc-900/80 text-zinc-300 hover:text-amber-300 border border-zinc-800">
+                        شاد و رقص طهرانی
+                    </button>
+                    <button onclick="filterCategory('ballad')" class="cat-pill px-4 py-2 rounded-xl transition-all font-medium whitespace-nowrap bg-zinc-900/80 text-zinc-300 hover:text-amber-300 border border-zinc-800">
+                        سوزناک و مستانه
+                    </button>
+                    <button onclick="filterCategory('majlesi')" class="cat-pill px-4 py-2 rounded-xl transition-all font-medium whitespace-nowrap bg-zinc-900/80 text-zinc-300 hover:text-amber-300 border border-zinc-800">
+                        مجلسی و ارکستری
+                    </button>
+                    <button onclick="filterCategory('favorites')" class="cat-pill px-4 py-2 rounded-xl transition-all font-medium whitespace-nowrap bg-zinc-900/80 text-zinc-300 hover:text-rose-400 border border-zinc-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-heart text-xs text-rose-500"></i> علاقه‌مندی‌ها (<span id="homeFavCount">0</span>)
+                    </button>
+                </div>
+
+                <div class="relative w-full md:w-72">
+                    <input id="userSearchInput" type="text" placeholder="جستجوی نام ترانه یا خواننده..." 
+                        class="w-full bg-zinc-950/80 border border-gold-600/30 text-sm rounded-xl py-2 px-3 pl-9 focus:outline-none focus:border-amber-400 text-gray-200 transition-all placeholder:text-zinc-500">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-zinc-400 text-xs"></i>
+                </div>
+            </section>
+
+            <!-- Song Grid -->
+            <section id="tracksGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 pb-24">
+                <!-- Injected via JavaScript -->
+            </section>
+        </div>
+
+        <!-- ======================= SUGGESTION VIEW ======================= -->
+        <div id="suggestView" class="hidden max-w-2xl mx-auto py-6">
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border border-amber-500/30 shadow-2xl relative">
+                <button onclick="switchView('home')" class="absolute top-5 left-5 text-zinc-400 hover:text-white text-lg p-2 rounded-xl bg-zinc-900/60 transition-colors">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+
+                <div class="text-right space-y-2 mb-6">
+                    <span class="text-xs text-amber-400 font-bold px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30">
+                        <i class="fa-solid fa-bullhorn"></i> ارتباط با کافه‌چی لاله‌زار
+                    </span>
+                    <h3 class="text-2xl font-black text-white">پیشنهاد ترانه جدید</h3>
+                    <p class="text-xs md:text-sm text-zinc-400 font-light">
+                        ترانه کوچه‌بازاری یا نوستالژیک مورد علاقه‌تان که در آرشیو نیست را بنویسید تا مدیریت پس از بازبینی به فهرست اضافه نماید.
+                    </p>
+                </div>
+
+                <form id="suggestionForm" onsubmit="submitUserSuggestion(event)" class="space-y-4 text-right">
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1.5">نام ترانه <span class="text-amber-400">*</span></label>
+                        <input id="sugTitle" type="text" required placeholder="مثلاً: لب کارون، بت‌تراش، زن زیبا..." 
+                            class="w-full bg-zinc-950/90 border border-zinc-700 focus:border-amber-400 text-sm rounded-xl p-3 text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1.5">نام خواننده <span class="text-amber-400">*</span></label>
+                        <input id="sugArtist" type="text" required placeholder="مثلاً: آغاسی، داوود مقامی، سوسن، جواد یساری..." 
+                            class="w-full bg-zinc-950/90 border border-zinc-700 focus:border-amber-400 text-sm rounded-xl p-3 text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1.5">سبک یا حس ترانه</label>
+                        <select id="sugCategory" class="w-full bg-zinc-950/90 border border-zinc-700 focus:border-amber-400 text-sm rounded-xl p-3 text-white outline-none">
+                            <option value="upbeat">شاد و رقص طهرانی</option>
+                            <option value="ballad">سوزناک و مستانه</option>
+                            <option value="majlesi">مجلسی و ارکستری</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1.5">لینک صوتی یا توضیحات ترانه (اختیاری)</label>
+                        <textarea id="sugNotes" rows="3" placeholder="اگر لینک فایل صوتی یا مطلع شعر را دارید بنویسید..." 
+                            class="w-full bg-zinc-950/90 border border-zinc-700 focus:border-amber-400 text-sm rounded-xl p-3 text-white outline-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1.5">نام یا نام‌مستعار شما (اختیاری)</label>
+                        <input id="sugSender" type="text" placeholder="مثلاً: علی از طهران" 
+                            class="w-full bg-zinc-950/90 border border-zinc-700 focus:border-amber-400 text-sm rounded-xl p-3 text-white outline-none">
+                    </div>
+
+                    <div class="pt-2 flex items-center justify-end gap-3">
+                        <button type="button" onclick="switchView('home')" class="px-5 py-2.5 rounded-xl border border-zinc-700 text-zinc-300 hover:text-white text-xs">
+                            انصراف
+                        </button>
+                        <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-zinc-950 font-black text-xs shadow-lg shadow-amber-500/20 hover:scale-105 active:scale-95 transition-all">
+                            ارسال پیشنهاد به مدیریت
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ======================= ADMIN VIEW ======================= -->
+        <div id="adminView" class="hidden space-y-6 py-4">
+            <!-- Admin Top Bar -->
+            <div class="glass-panel rounded-2xl p-4 md:p-6 flex flex-wrap items-center justify-between gap-4 border border-amber-500/30">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 text-xl">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg md:text-xl font-black text-white">میز فرمان کافه لاله‌زار (پنل مدیریت)</h2>
+                        <p class="text-xs text-zinc-400 font-light">مدیریت آهنگ‌ها، آهنگ‌های پیشنهادی و تنظیمات امنیتی</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="switchView('home')" class="px-3.5 py-2 rounded-xl border border-zinc-700 text-zinc-300 hover:text-white text-xs flex items-center gap-1.5">
+                        <i class="fa-solid fa-eye"></i> مشاهده سایت
+                    </button>
+                    <button onclick="adminLogout()" class="px-3.5 py-2 rounded-xl bg-rose-600/20 border border-rose-500/40 text-rose-300 hover:bg-rose-600/30 text-xs flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> خروج
+                    </button>
+                </div>
+            </div>
+
+            <!-- Admin Sub-Navigation Tabs -->
+            <div class="flex items-center gap-2 border-b border-zinc-800 pb-2">
+                <button onclick="setAdminTab('songs')" id="tabBtnSongs" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-zinc-950">
+                    <i class="fa-solid fa-music ml-1"></i> مدیریت آهنگ‌ها
+                </button>
+                <button onclick="setAdminTab('suggestions')" id="tabBtnSuggestions" class="px-4 py-2 rounded-xl text-xs font-bold bg-zinc-900/80 text-zinc-400 hover:text-amber-300 border border-zinc-800 relative">
+                    <i class="fa-solid fa-inbox ml-1"></i> آهنگ‌های پیشنهادی
+                    <span id="adminPendingBadge" class="hidden absolute -top-1.5 -left-1.5 bg-rose-500 text-white text-[10px] w-5 h-5 rounded-full items-center justify-center font-bold">0</span>
+                </button>
+                <button onclick="setAdminTab('security')" id="tabBtnSecurity" class="px-4 py-2 rounded-xl text-xs font-bold bg-zinc-900/80 text-zinc-400 hover:text-amber-300 border border-zinc-800">
+                    <i class="fa-solid fa-key ml-1"></i> تغییر رمز عبور
+                </button>
+            </div>
+
+            <!-- Admin Tab 1: Song Management -->
+            <div id="adminTabSongs" class="space-y-6">
+                <!-- Add / Edit Song Card -->
+                <div class="glass-panel rounded-2xl p-5 border border-amber-500/20">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 id="songFormHeading" class="text-sm font-black text-amber-300 flex items-center gap-2">
+                            <i class="fa-solid fa-plus-circle"></i> افزودن ترانه جدید به آرشیو
+                        </h4>
+                        <button id="cancelEditBtn" onclick="resetSongForm()" class="hidden text-xs text-rose-400 hover:underline">
+                            لغو ویرایش
+                        </button>
+                    </div>
+
+                    <form id="songAdminForm" onsubmit="handleSongFormSubmit(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-right">
+                        <input type="hidden" id="adminSongEditId" value="">
+
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">نام ترانه <span class="text-amber-400">*</span></label>
+                            <input id="formSongTitle" type="text" required placeholder="مثلاً: سپیده‌دم" 
+                                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-2.5 text-xs text-white focus:border-amber-400 outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">نام خواننده <span class="text-amber-400">*</span></label>
+                            <input id="formSongArtist" type="text" required placeholder="مثلاً: جواد یساری" 
+                                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-2.5 text-xs text-white focus:border-amber-400 outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">دسته‌بندی ترانه <span class="text-amber-400">*</span></label>
+                            <select id="formSongCategory" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-2.5 text-xs text-white focus:border-amber-400 outline-none">
+                                <option value="upbeat">شاد و رقص طهرانی</option>
+                                <option value="ballad">سوزناک و مستانه</option>
+                                <option value="majlesi">مجلسی و ارکستری</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">لینک فایل صوتی (URL یا MP3)</label>
+                            <input id="formSongAudioUrl" type="url" placeholder="https://domain.com/track.mp3" 
+                                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-2.5 text-xs text-white focus:border-amber-400 outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">یا آپلود مستقیم فایل صوتی</label>
+                            <input id="formSongAudioFile" type="file" accept="audio/*" onchange="handleAudioFileUpload(event)"
+                                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-2 text-xs text-zinc-400 file:ml-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:bg-amber-500 file:text-zinc-950 file:font-bold file:text-xs">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">لینک تصویر کاور</label>
+                            <input id="formSongCover" type="text" placeholder="آدرس تصویر یا پیش‌فرض خالی بگذارید" 
+                                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-2.5 text-xs text-white focus:border-amber-400 outline-none">
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">مطلع یا گزیده متن ترانه</label>
+                            <input id="formSongQuote" type="text" placeholder="مثلاً: سپیده‌دم آمد و بوی جدایی با خود آورد..." 
+                                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-2.5 text-xs text-white focus:border-amber-400 outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">مدت زمان (به ثانیه)</label>
+                            <input id="formSongDuration" type="number" min="30" max="600" value="210" 
+                                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-2.5 text-xs text-white focus:border-amber-400 outline-none">
+                        </div>
+
+                        <div class="md:col-span-3 flex justify-end gap-3 pt-2">
+                            <button type="submit" id="songFormSubmitBtn" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-zinc-950 font-black text-xs shadow-md shadow-amber-500/20 hover:scale-105 active:scale-95 transition-all">
+                                ثبت و ذخیره ترانه در آرشیو
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Existing Songs Table -->
+                <div class="glass-panel rounded-2xl p-5 border border-zinc-800 overflow-x-auto">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-amber-400"></i> لیست تمام ترانه‌های فعال (<span id="adminTotalSongs">0</span>)
+                        </h4>
+                        <button onclick="restoreDefaultSongs()" class="text-xs text-amber-400 hover:underline">
+                            <i class="fa-solid fa-rotate-left ml-1"></i> بازیابی ترانه‌های اولیه
+                        </button>
+                    </div>
+
+                    <table class="w-full text-right text-xs">
+                        <thead>
+                            <tr class="border-b border-zinc-800 text-zinc-400 pb-2">
+                                <th class="py-2.5 px-3">کاور</th>
+                                <th class="py-2.5 px-3">نام ترانه</th>
+                                <th class="py-2.5 px-3">خواننده</th>
+                                <th class="py-2.5 px-3">سبک</th>
+                                <th class="py-2.5 px-3">منبع صدا</th>
+                                <th class="py-2.5 px-3 text-left">عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminSongsTableBody" class="divide-y divide-zinc-800/60">
+                            <!-- Injected via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Admin Tab 2: Song Suggestions -->
+            <div id="adminTabSuggestions" class="hidden space-y-4">
+                <div class="glass-panel rounded-2xl p-5 border border-zinc-800">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-envelope-open-text text-amber-400"></i> پیشنهادهای ارسالی شنوندگان (<span id="adminTotalSuggestions">0</span>)
+                        </h4>
+                        <button onclick="clearAllSuggestions()" class="text-xs text-rose-400 hover:underline">
+                            حذف همه پیشنهادها
+                        </button>
+                    </div>
+
+                    <div id="adminSuggestionsList" class="space-y-3">
+                        <!-- Injected via JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Tab 3: Security & Password Change -->
+            <div id="adminTabSecurity" class="hidden max-w-md mx-auto">
+                <div class="glass-panel rounded-2xl p-6 border border-amber-500/30 text-right space-y-4">
+                    <div class="flex items-center gap-2.5 text-amber-400 font-bold text-sm">
+                        <i class="fa-solid fa-shield-halved text-base"></i> تغییر رمز عبور پنل مدیریت
+                    </div>
+                    <p class="text-xs text-zinc-400 font-light">
+                        رمز عبور جدید را تعیین کنید. برای مراجعات بعدی رمز در مرورگر شما ذخیره می‌شود. (رمز فعلی پیش‌فرض: 1234)
+                    </p>
+
+                    <form onsubmit="handlePasswordChange(event)" class="space-y-4 pt-2">
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">رمز عبور فعلی</label>
+                            <input id="currentPassInput" type="password" required placeholder="رمز عبور فعلی" 
+                                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs text-white focus:border-amber-400 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">رمز عبور جدید</label>
+                            <input id="newPassInput" type="password" required placeholder="حداقل ۴ نویسه" 
+                                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs text-white focus:border-amber-400 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">تکرار رمز عبور جدید</label>
+                            <input id="confirmPassInput" type="password" required placeholder="تکرار رمز عبور جدید" 
+                                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs text-white focus:border-amber-400 outline-none">
+                        </div>
+
+                        <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-zinc-950 font-black text-xs shadow-md shadow-amber-500/20 hover:scale-102 transition-all">
+                            به‌روزرسانی و ثبت رمز جدید
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="stickyPlayerBar" class="fixed bottom-0 left-0 right-0 z-50 glass-panel border-t border-yellow-500/30 px-3 md:px-8 py-2.5">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 md:gap-6">
+            
+            <!-- Song Meta Left -->
+            <div class="flex items-center gap-3 w-full md:w-1/4 justify-between md:justify-start">
+                <div class="relative group cursor-pointer" onclick="toggleDetailsModal(true)">
+                    <img id="barThumb" src="https://placehold.co/100x100/181410/fda085?text=لاله‌زار" alt="Cover" 
+                        class="w-12 h-12 md:w-14 md:h-14 rounded-xl object-cover border border-amber-500/40 shadow-md">
+                    <div class="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-amber-300 text-xs">
+                        <i class="fa-solid fa-expand"></i>
+                    </div>
+                </div>
+                <div class="overflow-hidden flex-1 max-w-[170px] md:max-w-xs text-right">
+                    <div id="barTitle" class="text-sm font-bold text-white truncate">سپیده‌دم</div>
+                    <div id="barArtist" class="text-xs text-amber-300/80 truncate">جواد یساری</div>
+                </div>
+                <button id="barFavBtn" onclick="toggleFavoriteCurrent()" class="text-zinc-500 hover:text-rose-500 transition-colors p-2 text-base">
+                    <i class="fa-regular fa-heart"></i>
+                </button>
+            </div>
+
+            <!-- Player Controls Center -->
+            <div class="flex flex-col items-center gap-1.5 w-full md:w-2/4">
+                <div class="flex items-center gap-5 md:gap-7">
+                    <button id="shuffleBtn" onclick="toggleShuffle()" class="text-zinc-400 hover:text-amber-400 transition-colors text-xs" title="پخش تصادفی">
+                        <i class="fa-solid fa-shuffle"></i>
+                    </button>
+                    <button onclick="prevTrack()" class="text-zinc-200 hover:text-white transition-colors text-lg" title="ترانه قبلی">
+                        <i class="fa-solid fa-backward-step"></i>
+                    </button>
+                    <button id="playPauseBtn" onclick="togglePlay()" class="w-11 h-11 md:w-12 md:h-12 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-zinc-950 flex items-center justify-center shadow-lg shadow-amber-500/35 text-lg transition-transform active:scale-90">
+                        <i id="playIcon" class="fa-solid fa-play ml-0.5"></i>
+                    </button>
+                    <button onclick="nextTrack()" class="text-zinc-200 hover:text-white transition-colors text-lg" title="ترانه بعدی">
+                        <i class="fa-solid fa-forward-step"></i>
+                    </button>
+                    <button id="repeatBtn" onclick="toggleRepeat()" class="text-zinc-400 hover:text-amber-400 transition-colors text-xs" title="تکرار">
+                        <i class="fa-solid fa-repeat"></i>
+                    </button>
+                </div>
+
+                <!-- Progress / Seekbar -->
+                <div class="w-full flex items-center gap-3 text-[11px] font-mono text-zinc-400">
+                    <span id="currentTimeText" class="w-9 text-left">0:00</span>
+                    <input id="seekBar" type="range" min="0" max="100" value="0" class="range-slider flex-1">
+                    <span id="totalTimeText" class="w-9 text-right">0:00</span>
+                </div>
+            </div>
+
+            <!-- Volume & Modal Opener Right -->
+            <div class="hidden md:flex items-center gap-3 w-1/4 justify-end">
+                <button onclick="toggleMute()" class="text-zinc-400 hover:text-amber-300 transition-colors text-sm">
+                    <i id="volumeIcon" class="fa-solid fa-volume-high"></i>
+                </button>
+                <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="0.8" class="range-slider w-20">
+                <button onclick="toggleDetailsModal(true)" class="p-2 text-zinc-400 hover:text-yellow-400 transition-colors text-sm" title="شناسنامه ترانه">
+                    <i class="fa-solid fa-file-lines"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden HTML5 Audio Element for real MP3 stream fallback -->
+    <audio id="nativeAudio" class="hidden"></audio>
+
+    <!-- Admin Login Modal -->
+    <div id="adminLoginModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-sm rounded-3xl p-6 md:p-8 relative border border-amber-500/30 text-right shadow-2xl">
+            <button onclick="closeAdminLoginModal()" class="absolute top-4 left-4 text-zinc-400 hover:text-white p-2">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-xl mx-auto mb-4">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h3 class="text-lg font-black text-center text-white mb-1">ورود به پنل مدیریت</h3>
+            <p class="text-xs text-center text-zinc-400 mb-6">برای دسترسی به پنل، رمز عبور را وارد نمایید</p>
+
+            <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1.5">رمز عبور مدیریت</label>
+                    <input id="adminPasswordInput" type="password" required placeholder="رمز پیش‌فرض: 1234" 
+                        class="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-400 text-sm rounded-xl p-3 text-white outline-none">
+                </div>
+                <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-zinc-950 font-black text-xs shadow-lg shadow-amber-500/20 hover:scale-102 active:scale-95 transition-all">
+                    ورود به پنل
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Song Detail Modal -->
+    <div id="songDetailModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-2xl rounded-3xl p-6 md:p-8 relative border border-amber-500/30 max-h-[90vh] overflow-y-auto shadow-2xl text-right">
+            <button onclick="toggleDetailsModal(false)" class="absolute top-5 left-5 text-zinc-400 hover:text-white text-lg p-2 rounded-xl bg-zinc-900/60">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex flex-col sm:flex-row items-center gap-6 mb-6">
+                <img id="modalCover" src="" class="w-28 h-28 rounded-2xl object-cover border border-amber-500/30 shadow-lg">
+                <div class="space-y-1">
+                    <h3 id="modalTitle" class="text-2xl font-black text-amber-300">عنوان ترانه</h3>
+                    <p id="modalArtist" class="text-sm text-zinc-300 font-light">نام خواننده</p>
+                    <span id="modalCategory" class="inline-block mt-2 text-[11px] px-3 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300">دسته‌بندی</span>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-zinc-900/80 p-4 rounded-2xl border border-zinc-800">
+                    <span class="text-xs text-amber-400 font-bold block mb-1.5"><i class="fa-solid fa-quote-right ml-1"></i> مطلع ترانه:</span>
+                    <p id="modalQuote" class="text-sm text-zinc-200 leading-relaxed font-serif"></p>
+                </div>
+                <div class="text-xs text-zinc-400 leading-relaxed bg-zinc-950/60 p-4 rounded-2xl border border-zinc-800/60">
+                    <i class="fa-solid fa-circle-info text-amber-400 ml-1"></i> این ترانه جزو آرشیو غنی موسیقی مردمی کافه لاله‌زار بوده و توسط مدیریت سامانه ثبت شده است.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast Element -->
+    <div id="toastNotification" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 glass-panel border border-amber-500/40 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 opacity-0 pointer-events-none transition-all duration-300">
+        <i id="toastIcon" class="fa-solid fa-check-circle text-amber-400 text-lg"></i>
+        <span id="toastMessage" class="text-xs md:text-sm font-semibold text-white">پیام با موفقیت ثبت شد</span>
+    </div>
+
+    <script>
+        // Initial Default Dataset for Koocheh-Bazari songs
+        const DEFAULT_SONGS = [
+            {
+                id: 1,
+                title: "سپیده‌دم",
+                artist: "جواد یساری",
+                category: "ballad",
+                duration: 215,
+                cover: "https://placehold.co/400x400/221b14/fda085?text=سپیده+دم",
+                quote: "سپیده‌دم آمد و بوی جدایی با خود آورد / بازم من و غم و این دل پر از سوز سخن...",
+                audioUrl: ""
+            },
+            {
+                id: 2,
+                title: "فریبا",
+                artist: "داوود مقامی",
+                category: "ballad",
+                duration: 198,
+                cover: "https://placehold.co/400x400/181a24/f6d365?text=داوود+مقامی",
+                quote: "فریبا ای گل زیبای رویا / ببین از غم شدم تنهای تنها در این دنیا...",
+                audioUrl: ""
+            },
+            {
+                id: 3,
+                title: "تک‌دل",
+                artist: "عباس قادری",
+                category: "upbeat",
+                duration: 185,
+                cover: "https://placehold.co/400x400/2b1a13/ffc837?text=تک+دل",
+                quote: "تک‌دل من تویی و بس / همنفس من تویی و بس در این میخانه...",
+                audioUrl: ""
+            },
+            {
+                id: 4,
+                title: "دوست دارم می‌دونی",
+                artist: "سوسن",
+                category: "ballad",
+                duration: 220,
+                cover: "https://placehold.co/400x400/221626/fda085?text=بانو+سوسن",
+                quote: "دوست دارم می‌دونی که این کار دله / گناه من نیست تقصیر دله...",
+                audioUrl: ""
+            },
+            {
+                id: 5,
+                title: "لب کارون",
+                artist: "نعمت‌الله آغاسی",
+                category: "upbeat",
+                duration: 240,
+                cover: "https://placehold.co/400x400/13241b/f6d365?text=لب+کارون",
+                quote: "لب کارون چه گلبارون / مهد صفا و عاشقی، عهد جوونامون...",
+                audioUrl: ""
+            },
+            {
+                id: 6,
+                title: "دست خوش",
+                artist: "ایرج مهدیان",
+                category: "majlesi",
+                duration: 205,
+                cover: "https://placehold.co/400x400/181520/ff7b00?text=ایرج+مهدیان",
+                quote: "دست خوش روزگار با ما چه کردی / مارو از دلخوشی‌ها دور کردی...",
+                audioUrl: ""
+            }
+        ];
+
+        const DEFAULT_SUGGESTIONS = [
+            {
+                id: 101,
+                title: "بت‌تراش",
+                artist: "حسن شجاعی",
+                category: "majlesi",
+                notes: "آهنگ سنگین و سنتی با سنتور لاله زاری",
+                sender: "آقا رضا از نازی‌آباد",
+                date: "۱۴۰۳/۰۴/۱۵"
+            },
+            {
+                id: 102,
+                title: "سفر کرده",
+                artist: "علی نظری",
+                category: "ballad",
+                notes: "لطفا نسخه قدیمی صفحه گرام را اضافه بفرمایید",
+                sender: "مریم",
+                date: "۱۴۰۳/۰۴/۱۶"
+            }
+        ];
+
+        // App State
+        let songs = [];
+        let suggestions = [];
+        let favorites = [];
+        let adminPassword = "";
+        let isAdminLoggedIn = false;
+
+        let currentTrackIndex = 0;
+        let isPlaying = false;
+        let isShuffle = false;
+        let isRepeat = false;
+        let currentFilter = 'all';
+
+        // Audio & Visualizer State
+        let audioCtx = null;
+        let masterGain = null;
+        let analyser = null;
+        let crackleNode = null;
+        let crackleActive = false;
+        let synthInterval = null;
+        let playbackTimer = null;
+        let simulatedCurrentTime = 0;
+        const nativeAudio = document.getElementById('nativeAudio');
+
+        // Storage Initialization
+        function initializeData() {
+            // Password
+            adminPassword = localStorage.getItem('koocheh_admin_pass') || '1234';
+            localStorage.setItem('koocheh_admin_pass', adminPassword);
+
+            // Songs
+            const savedSongs = localStorage.getItem('koocheh_songs');
+            if (savedSongs) {
+                try { songs = JSON.parse(savedSongs); } catch(e) { songs = [...DEFAULT_SONGS]; }
+            } else {
+                songs = [...DEFAULT_SONGS];
+                saveSongs();
+            }
+
+            // Suggestions
+            const savedSug = localStorage.getItem('koocheh_suggestions');
+            if (savedSug) {
+                try { suggestions = JSON.parse(savedSug); } catch(e) { suggestions = [...DEFAULT_SUGGESTIONS]; }
+            } else {
+                suggestions = [...DEFAULT_SUGGESTIONS];
+                saveSuggestions();
+            }
+
+            // Favorites
+            const savedFavs = localStorage.getItem('koocheh_favs');
+            if (savedFavs) {
+                try { favorites = JSON.parse(savedFavs); } catch(e) { favorites = []; }
+            }
+
+            updateFavoriteCount();
+            updateSuggestionsBadge();
+        }
+
+        function saveSongs() {
+            localStorage.setItem('koocheh_songs', JSON.stringify(songs));
+        }
+
+        function saveSuggestions() {
+            localStorage.setItem('koocheh_suggestions', JSON.stringify(suggestions));
+            updateSuggestionsBadge();
+        }
+
+        function updateSuggestionsBadge() {
+            const badge = document.getElementById('adminPendingBadge');
+            const totalCountElem = document.getElementById('adminTotalSuggestions');
+            if (totalCountElem) totalCountElem.textContent = suggestions.length;
+            if (badge) {
+                if (suggestions.length > 0) {
+                    badge.textContent = suggestions.length;
+                    badge.classList.remove('hidden');
+                    badge.classList.add('flex');
+                } else {
+                    badge.classList.add('hidden');
+                    badge.classList.remove('flex');
+                }
+            }
+        }
+
+        function initAudioEngine() {
+            if (audioCtx) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+
+            masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(0.8, audioCtx.currentTime);
+
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 64;
+
+            masterGain.connect(analyser);
+            analyser.connect(audioCtx.destination);
+
+            initCanvasVisualizer();
+        }
+
+        function initCanvasVisualizer() {
+            const canvas = document.getElementById('spectrumCanvas');
+            const ctx = canvas.getContext('2d');
+
+            function render() {
+                requestAnimationFrame(render);
+                const width = canvas.width = canvas.clientWidth;
+                const height = canvas.height = canvas.clientHeight;
+
+                if (!analyser || !isPlaying) {
+                    ctx.fillStyle = '#090a0f';
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.strokeStyle = 'rgba(212, 175, 55, 0.2)';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(0, height / 2);
+                    ctx.lineTo(width, height / 2);
+                    ctx.stroke();
+                    return;
+                }
+
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                analyser.getByteFrequencyData(dataArray);
+
+                ctx.fillStyle = 'rgba(9, 10, 15, 0.35)';
+                ctx.fillRect(0, 0, width, height);
+
+                const barWidth = (width / bufferLength) * 2.2;
+                let x = 0;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    const barHeight = (dataArray[i] / 255) * height * 0.9;
+                    const grad = ctx.createLinearGradient(0, height - barHeight, 0, height);
+                    grad.addColorStop(0, '#ffd54f');
+                    grad.addColorStop(0.5, '#ff9800');
+                    grad.addColorStop(1, '#d84315');
+
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(x, height - barHeight, barWidth - 2, barHeight);
+                    x += barWidth;
+                }
+            }
+            render();
+        }
+
+        function playSynthNote(freq, duration = 0.35, type = 'triangle') {
+            if (!audioCtx || !isPlaying) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const noteGain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+                noteGain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+                noteGain.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 0.05);
+                noteGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+
+                osc.connect(noteGain);
+                noteGain.connect(masterGain);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const persianPentatonic = [261.63, 293.66, 311.13, 349.23, 392.00, 415.30, 466.16, 523.25];
+        function startSynthEmulation() {
+            stopSynthEmulation();
+            let step = 0;
+            synthInterval = setInterval(() => {
+                if (isPlaying) {
+                    const note = persianPentatonic[step % persianPentatonic.length];
+                    playSynthNote(note, 0.38, 'triangle');
+                    if (step % 2 === 0) playSynthNote(110, 0.22, 'sine');
+                    step++;
+                }
+            }, 360);
+        }
+
+        function stopSynthEmulation() {
+            if (synthInterval) {
+                clearInterval(synthInterval);
+                synthInterval = null;
+            }
+        }
+
+        function toggleVinylCrackle() {
+            initAudioEngine();
+            crackleActive = !crackleActive;
+            const indicator = document.getElementById('crackleIndicator');
+            const btn = document.getElementById('vinylCrackleBtn');
+
+            if (crackleActive) {
+                indicator.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+                btn.classList.add('border-amber-400', 'bg-amber-500/20');
+                startCrackleNoise();
+                showToast("افکت خش‌خش صفحه گرامافون فعال شد");
+            } else {
+                indicator.className = "w-2 h-2 rounded-full bg-zinc-600";
+                btn.classList.remove('border-amber-400', 'bg-amber-500/20');
+                stopCrackleNoise();
+                showToast("افکت خش‌خش غیرفعال شد");
+            }
+        }
+
+        function startCrackleNoise() {
+            if (!audioCtx) return;
+            const bufferSize = audioCtx.sampleRate * 2;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < bufferSize; i++) {
+                const crackle = Math.random() < 0.0025 ? (Math.random() * 2 - 1) * 0.45 : 0;
+                const hiss = (Math.random() * 2 - 1) * 0.015;
+                data[i] = crackle + hiss;
+            }
+
+            crackleNode = audioCtx.createBufferSource();
+            crackleNode.buffer = buffer;
+            crackleNode.loop = true;
+
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 1300;
+
+            const gain = audioCtx.createGain();
+            gain.gain.value = 0.35;
+
+            crackleNode.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
+            crackleNode.start();
+        }
+
+        function stopCrackleNoise() {
+            if (crackleNode) {
+                try { crackleNode.stop(); crackleNode.disconnect(); } catch(e){}
+                crackleNode = null;
+            }
+        }
+
+        function loadTrack(index) {
+            if (songs.length === 0) return;
+            currentTrackIndex = Math.max(0, Math.min(index, songs.length - 1));
+            const track = songs[currentTrackIndex];
+            simulatedCurrentTime = 0;
+
+            document.getElementById('barTitle').textContent = track.title;
+            document.getElementById('barArtist').textContent = track.artist;
+            document.getElementById('barThumb').src = track.cover || 'https://placehold.co/100x100/181410/fda085?text=نوای+لاله‌زار';
+            document.getElementById('heroVinylImg').src = track.cover || 'https://placehold.co/300x300/201912/ffd54f?text=نوای+لاله‌زار';
+            document.getElementById('totalTimeText').textContent = formatSeconds(track.duration);
+            document.getElementById('currentTimeText').textContent = "0:00";
+            document.getElementById('seekBar').value = 0;
+
+            // Handle real audio if URL exists
+            if (track.audioUrl) {
+                nativeAudio.src = track.audioUrl;
+                nativeAudio.currentTime = 0;
+            } else {
+                nativeAudio.src = "";
+            }
+
+            updateFavoriteIcon();
+            highlightCurrentPlayingCard();
+        }
+
+        function togglePlay() {
+            if (songs.length === 0) {
+                showToast("ترانه‌ای در لیست پخش وجود ندارد!", "error");
+                return;
+            }
+            initAudioEngine();
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            isPlaying = !isPlaying;
+            const playIcon = document.getElementById('playIcon');
+            const heroVinyl = document.getElementById('heroVinylDisc');
+
+            if (isPlaying) {
+                playIcon.className = "fa-solid fa-pause";
+                heroVinyl.classList.remove('paused-spin');
+
+                const track = songs[currentTrackIndex];
+                if (track.audioUrl) {
+                    nativeAudio.play().catch(() => {
+                        startSynthEmulation();
+                    });
+                } else {
+                    startSynthEmulation();
+                }
+                startTimer();
+            } else {
+                playIcon.className = "fa-solid fa-play ml-0.5";
+                heroVinyl.classList.add('paused-spin');
+                nativeAudio.pause();
+                stopSynthEmulation();
+                stopTimer();
+            }
+        }
+
+        function nextTrack() {
+            if (songs.length === 0) return;
+            if (isShuffle) {
+                currentTrackIndex = Math.floor(Math.random() * songs.length);
+            } else {
+                currentTrackIndex = (currentTrackIndex + 1) % songs.length;
+            }
+            loadTrack(currentTrackIndex);
+            if (isPlaying) {
+                nativeAudio.pause();
+                stopSynthEmulation();
+                const track = songs[currentTrackIndex];
+                if (track.audioUrl) {
+                    nativeAudio.play().catch(() => startSynthEmulation());
+                } else {
+                    startSynthEmulation();
+                }
+            }
+        }
+
+        function prevTrack() {
+            if (songs.length === 0) return;
+            currentTrackIndex = (currentTrackIndex - 1 + songs.length) % songs.length;
+            loadTrack(currentTrackIndex);
+            if (isPlaying) {
+                nativeAudio.pause();
+                stopSynthEmulation();
+                const track = songs[currentTrackIndex];
+                if (track.audioUrl) {
+                    nativeAudio.play().catch(() => startSynthEmulation());
+                } else {
+                    startSynthEmulation();
+                }
+            }
+        }
+
+        function playRandomTrack() {
+            if (songs.length === 0) return;
+            const rand = Math.floor(Math.random() * songs.length);
+            loadTrack(rand);
+            if (!isPlaying) togglePlay();
+        }
+
+        function startTimer() {
+            stopTimer();
+            playbackTimer = setInterval(() => {
+                if (songs.length === 0) return;
+                const track = songs[currentTrackIndex];
+                
+                if (track.audioUrl && !nativeAudio.paused) {
+                    simulatedCurrentTime = Math.floor(nativeAudio.currentTime);
+                } else {
+                    simulatedCurrentTime++;
+                }
+
+                if (simulatedCurrentTime >= track.duration) {
+                    if (isRepeat) {
+                        simulatedCurrentTime = 0;
+                        if (track.audioUrl) nativeAudio.currentTime = 0;
+                    } else {
+                        nextTrack();
+                        return;
+                    }
+                }
+
+                document.getElementById('currentTimeText').textContent = formatSeconds(simulatedCurrentTime);
+                const percent = (simulatedCurrentTime / track.duration) * 100;
+                document.getElementById('seekBar').value = percent || 0;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (playbackTimer) {
+                clearInterval(playbackTimer);
+                playbackTimer = null;
+            }
+        }
+
+        function formatSeconds(sec) {
+            const m = Math.floor(sec / 60);
+            const s = Math.floor(sec % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        document.getElementById('seekBar').addEventListener('input', (e) => {
+            if (songs.length === 0) return;
+            const track = songs[currentTrackIndex];
+            simulatedCurrentTime = Math.floor((e.target.value / 100) * track.duration);
+            document.getElementById('currentTimeText').textContent = formatSeconds(simulatedCurrentTime);
+            if (track.audioUrl) {
+                nativeAudio.currentTime = simulatedCurrentTime;
+            }
+        });
+
+        document.getElementById('volumeSlider').addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            if (masterGain && audioCtx) {
+                masterGain.gain.setValueAtTime(val, audioCtx.currentTime);
+            }
+            nativeAudio.volume = val;
+        });
+
+        function toggleShuffle() {
+            isShuffle = !isShuffle;
+            const btn = document.getElementById('shuffleBtn');
+            btn.classList.toggle('text-amber-400', isShuffle);
+            btn.classList.toggle('text-zinc-400', !isShuffle);
+            showToast(isShuffle ? "پخش تصادفی فعال شد" : "پخش تصادفی غیرفعال شد");
+        }
+
+        function toggleRepeat() {
+            isRepeat = !isRepeat;
+            const btn = document.getElementById('repeatBtn');
+            btn.classList.toggle('text-amber-400', isRepeat);
+            btn.classList.toggle('text-zinc-400', !isRepeat);
+            showToast(isRepeat ? "تکرار ترانه فعال شد" : "تکرار ترانه غیرفعال شد");
+        }
+
+        function toggleMute() {
+            const slider = document.getElementById('volumeSlider');
+            if (slider.value > 0) {
+                slider.value = 0;
+            } else {
+                slider.value = 0.8;
+            }
+            if (masterGain && audioCtx) {
+                masterGain.gain.setValueAtTime(parseFloat(slider.value), audioCtx.currentTime);
+            }
+            nativeAudio.volume = parseFloat(slider.value);
+        }
+
+        function renderTracksGrid() {
+            const grid = document.getElementById('tracksGrid');
+            const searchVal = document.getElementById('userSearchInput').value.trim().toLowerCase();
+
+            const filtered = songs.filter(t => {
+                const matchSearch = t.title.toLowerCase().includes(searchVal) || t.artist.toLowerCase().includes(searchVal);
+                if (!matchSearch) return false;
+
+                if (currentFilter === 'all') return true;
+                if (currentFilter === 'favorites') return favorites.includes(t.id);
+                return t.category === currentFilter;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-16 text-center text-zinc-500 space-y-3">
+                        <i class="fa-solid fa-compact-disc text-5xl text-zinc-700"></i>
+                        <p class="text-sm font-light">هیچ ترانه‌ای با این مشخصات یافت نشد!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(track => {
+                const songIndex = songs.findIndex(s => s.id === track.id);
+                const isFav = favorites.includes(track.id);
+                const isCurr = songIndex === currentTrackIndex;
+
+                let categoryLabel = "سوزناک";
+                if (track.category === 'upbeat') categoryLabel = "شاد و رقصی";
+                else if (track.category === 'majlesi') categoryLabel = "مجلسی";
+
+                return `
+                <div data-index="${songIndex}" class="track-card glass-card rounded-2xl p-4 flex flex-col justify-between group cursor-pointer border ${isCurr ? 'border-amber-400 shadow-amber-500/20' : 'border-zinc-800/80'}">
+                    <div>
+                        <!-- Cover and Action -->
+                        <div class="relative w-full aspect-square rounded-xl overflow-hidden mb-3.5 bg-zinc-950 flex items-center justify-center">
+                            <img src="${track.cover || 'https://placehold.co/400x400/221b14/fda085?text=' + encodeURIComponent(track.title)}" alt="${track.title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent opacity-60"></div>
+                            
+                            <button onclick="playDirectIndex(${songIndex}, event)" class="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-amber-500 hover:bg-amber-400 text-zinc-950 flex items-center justify-center shadow-lg transition-transform transform hover:scale-110 active:scale-95">
+                                <i class="fa-solid fa-play ml-0.5 text-sm"></i>
+                            </button>
+
+                            <span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-black/60 backdrop-blur-md text-amber-300 border border-amber-500/30">
+                                ${categoryLabel}
+                            </span>
+                        </div>
+
+                        <!-- Info -->
+                        <div class="text-right">
+                            <h4 class="text-base font-black text-white group-hover:text-amber-300 transition-colors truncate">
+                                ${track.title}
+                            </h4>
+                            <p class="text-xs text-amber-200/70 font-light mt-0.5 truncate">
+                                ${track.artist}
+                            </p>
+                            <p class="text-[11px] text-zinc-400 mt-2 line-clamp-2 leading-relaxed font-light">
+                                ${track.quote || 'ترانه خاطره‌انگیز و اصیل با کلام دلنشین طهران قدیم...'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-3 mt-3 border-t border-zinc-800/80 text-xs">
+                        <span class="text-zinc-500 font-mono">${formatSeconds(track.duration)}</span>
+                        <div class="flex items-center gap-2">
+                            <button onclick="toggleCardFavorite(${track.id}, event)" class="p-1.5 transition-colors ${isFav ? 'text-rose-500' : 'text-zinc-500 hover:text-rose-400'}">
+                                <i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                            </button>
+                            <button onclick="showTrackDetails(${songIndex}, event)" class="p-1.5 text-zinc-500 hover:text-amber-300 transition-colors">
+                                <i class="fa-solid fa-circle-info"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function playDirectIndex(idx, e) {
+            if (e) e.stopPropagation();
+            loadTrack(idx);
+            if (!isPlaying) togglePlay();
+        }
+
+        function highlightCurrentPlayingCard() {
+            document.querySelectorAll('.track-card').forEach(card => {
+                const idx = parseInt(card.dataset.index);
+                if (idx === currentTrackIndex) {
+                    card.classList.add('border-amber-400', 'shadow-amber-500/20');
+                } else {
+                    card.classList.remove('border-amber-400', 'shadow-amber-500/20');
+                }
+            });
+        }
+
+        function filterCategory(cat) {
+            currentFilter = cat;
+            document.querySelectorAll('.cat-pill').forEach(btn => {
+                btn.className = "cat-pill px-4 py-2 rounded-xl transition-all font-medium whitespace-nowrap bg-zinc-900/80 text-zinc-300 hover:text-amber-300 border border-zinc-800";
+            });
+            event.target.closest('button').className = "cat-pill px-4 py-2 rounded-xl transition-all font-medium whitespace-nowrap bg-amber-500 text-zinc-950 shadow-md";
+            renderTracksGrid();
+        }
+
+        document.getElementById('userSearchInput').addEventListener('input', () => {
+            renderTracksGrid();
+        });
+
+        function toggleFavoriteCurrent() {
+            if (songs.length === 0) return;
+            const track = songs[currentTrackIndex];
+            toggleSongFavorite(track.id);
+        }
+
+        function toggleCardFavorite(id, e) {
+            if (e) e.stopPropagation();
+            toggleSongFavorite(id);
+        }
+
+        function toggleSongFavorite(id) {
+            if (favorites.includes(id)) {
+                favorites = favorites.filter(favId => favId !== id);
+                showToast("از علاقه‌مندی‌ها حذف شد");
+            } else {
+                favorites.push(id);
+                showToast("به علاقه‌مندی‌ها اضافه شد");
+            }
+            localStorage.setItem('koocheh_favs', JSON.stringify(favorites));
+            updateFavoriteCount();
+            updateFavoriteIcon();
+            renderTracksGrid();
+        }
+
+        function updateFavoriteCount() {
+            document.getElementById('homeFavCount').textContent = favorites.length;
+        }
+
+        function updateFavoriteIcon() {
+            if (songs.length === 0) return;
+            const track = songs[currentTrackIndex];
+            const isFav = favorites.includes(track.id);
+            const icon = document.querySelector('#barFavBtn i');
+            if (isFav) {
+                icon.className = "fa-solid fa-heart text-rose-500";
+            } else {
+                icon.className = "fa-regular fa-heart";
+            }
+        }
+
+        function showTrackDetails(index, e) {
+            if (e) e.stopPropagation();
+            const track = songs[index];
+            document.getElementById('modalTitle').textContent = track.title;
+            document.getElementById('modalArtist').textContent = track.artist;
+            document.getElementById('modalCover').src = track.cover || 'https://placehold.co/200x200/221b14/fda085?text=' + encodeURIComponent(track.title);
+            document.getElementById('modalQuote').textContent = track.quote || 'اطلاعات بیشتری از ترانه ثبت نشده است.';
+            
+            let catFa = "سوزناک و مستانه";
+            if (track.category === 'upbeat') catFa = "شاد و رقص طهرانی";
+            else if (track.category === 'majlesi') catFa = "مجلسی و ارکستری";
+            document.getElementById('modalCategory').textContent = catFa;
+
+            toggleDetailsModal(true);
+        }
+
+        function toggleDetailsModal(show) {
+            const modal = document.getElementById('songDetailModal');
+            if (show) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function switchView(viewName) {
+            const homeView = document.getElementById('homeView');
+            const suggestView = document.getElementById('suggestView');
+            const adminView = document.getElementById('adminView');
+
+            homeView.classList.add('hidden');
+            suggestView.classList.add('hidden');
+            adminView.classList.add('hidden');
+
+            if (viewName === 'home') {
+                homeView.classList.remove('hidden');
+            } else if (viewName === 'suggest') {
+                suggestView.classList.remove('hidden');
+            } else if (viewName === 'admin') {
+                adminView.classList.remove('hidden');
+                renderAdminSongsTable();
+                renderAdminSuggestions();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function handleAdminButtonClick() {
+            if (isAdminLoggedIn) {
+                switchView('admin');
+            } else {
+                openAdminLoginModal();
+            }
+        }
+
+        function openAdminLoginModal() {
+            const modal = document.getElementById('adminLoginModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('adminPasswordInput').focus();
+        }
+
+        function closeAdminLoginModal() {
+            const modal = document.getElementById('adminLoginModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const entered = document.getElementById('adminPasswordInput').value;
+            const currentSavedPass = localStorage.getItem('koocheh_admin_pass') || '1234';
+
+            if (entered === currentSavedPass) {
+                isAdminLoggedIn = true;
+                closeAdminLoginModal();
+                document.getElementById('adminBtnText').textContent = "میز مدیریت";
+                showToast("ورود موفقیت‌آمیز به پنل مدیریت");
+                switchView('admin');
+            } else {
+                showToast("رمز عبور اشتباه است!", "error");
+            }
+        }
+
+        function adminLogout() {
+            isAdminLoggedIn = false;
+            document.getElementById('adminBtnText').textContent = "پنل مدیریت";
+            showToast("از پنل مدیریت خارج شدید");
+            switchView('home');
+        }
+
+        function setAdminTab(tabName) {
+            const tabSongs = document.getElementById('adminTabSongs');
+            const tabSug = document.getElementById('adminTabSuggestions');
+            const tabSec = document.getElementById('adminTabSecurity');
+
+            const btnSongs = document.getElementById('tabBtnSongs');
+            const btnSug = document.getElementById('tabBtnSuggestions');
+            const btnSec = document.getElementById('tabBtnSecurity');
+
+            tabSongs.classList.add('hidden');
+            tabSug.classList.add('hidden');
+            tabSec.classList.add('hidden');
+
+            const inactiveClass = "px-4 py-2 rounded-xl text-xs font-bold bg-zinc-900/80 text-zinc-400 hover:text-amber-300 border border-zinc-800";
+            const activeClass = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-zinc-950";
+
+            btnSongs.className = inactiveClass;
+            btnSug.className = inactiveClass + " relative";
+            btnSec.className = inactiveClass;
+
+            if (tabName === 'songs') {
+                tabSongs.classList.remove('hidden');
+                btnSongs.className = activeClass;
+            } else if (tabName === 'suggestions') {
+                tabSug.classList.remove('hidden');
+                btnSug.className = activeClass + " relative";
+                renderAdminSuggestions();
+            } else if (tabName === 'security') {
+                tabSec.classList.remove('hidden');
+                btnSec.className = activeClass;
+            }
+        }
+
+        function renderAdminSongsTable() {
+            const tbody = document.getElementById('adminSongsTableBody');
+            document.getElementById('adminTotalSongs').textContent = songs.length;
+
+            if (songs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-zinc-500">ترانه‌ای ثبت نشده است</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = songs.map((s, idx) => {
+                let catBadge = `<span class="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-md text-[10px]">مجلسی</span>`;
+                if (s.category === 'upbeat') catBadge = `<span class="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-md text-[10px]">شاد</span>`;
+                if (s.category === 'ballad') catBadge = `<span class="bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-md text-[10px]">سوزناک</span>`;
+
+                const audioType = s.audioUrl ? 
+                    `<span class="text-emerald-400 text-[10px]"><i class="fa-solid fa-link ml-1"></i>لینک صوتی</span>` : 
+                    `<span class="text-zinc-500 text-[10px]"><i class="fa-solid fa-microchip ml-1"></i>سینت سایزر</span>`;
+
+                return `
+                <tr class="hover:bg-zinc-900/40 transition-colors">
+                    <td class="py-2 px-3">
+                        <img src="${s.cover || 'https://placehold.co/60x60/221b14/fda085?text=' + encodeURIComponent(s.title)}" class="w-9 h-9 rounded-lg object-cover">
+                    </td>
+                    <td class="py-2 px-3 font-bold text-white">${s.title}</td>
+                    <td class="py-2 px-3 text-zinc-300">${s.artist}</td>
+                    <td class="py-2 px-3">${catBadge}</td>
+                    <td class="py-2 px-3">${audioType}</td>
+                    <td class="py-2 px-3 text-left space-x-2 space-x-reverse">
+                        <button onclick="editSongAdmin(${s.id})" class="px-2.5 py-1 rounded-lg bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30 text-xs transition-colors" title="ویرایش ترانه">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button onclick="deleteSongAdmin(${s.id})" class="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 text-xs transition-colors" title="حذف ترانه">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        let uploadedAudioDataUrl = "";
+        function handleAudioFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                uploadedAudioDataUrl = evt.target.result;
+                document.getElementById('formSongAudioUrl').value = "";
+                showToast("فایل صوتی بارگذاری شد");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handleSongFormSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('adminSongEditId').value;
+            const title = document.getElementById('formSongTitle').value.trim();
+            const artist = document.getElementById('formSongArtist').value.trim();
+            const category = document.getElementById('formSongCategory').value;
+            let audioUrl = document.getElementById('formSongAudioUrl').value.trim();
+            const cover = document.getElementById('formSongCover').value.trim();
+            const quote = document.getElementById('formSongQuote').value.trim();
+            const duration = parseInt(document.getElementById('formSongDuration').value) || 210;
+
+            if (uploadedAudioDataUrl) {
+                audioUrl = uploadedAudioDataUrl;
+            }
+
+            if (editId) {
+                // Update
+                const songId = parseInt(editId);
+                const idx = songs.findIndex(s => s.id === songId);
+                if (idx !== -1) {
+                    songs[idx] = {
+                        ...songs[idx],
+                        title,
+                        artist,
+                        category,
+                        audioUrl: audioUrl || songs[idx].audioUrl,
+                        cover: cover || songs[idx].cover,
+                        quote: quote || songs[idx].quote,
+                        duration
+                    };
+                    showToast(`ترانه «${title}» با موفقیت ویرایش شد`);
+                }
+            } else {
+                // Insert New
+                const newSong = {
+                    id: Date.now(),
+                    title,
+                    artist,
+                    category,
+                    audioUrl,
+                    cover: cover || `https://placehold.co/400x400/201912/ffd54f?text=${encodeURIComponent(title)}`,
+                    quote: quote || `${title} با نوای خاطره‌انگیز ${artist}`,
+                    duration
+                };
+                songs.unshift(newSong);
+                showToast(`ترانه «${title}» به آرشیو اضافه گردید`);
+            }
+
+            saveSongs();
+            resetSongForm();
+            renderAdminSongsTable();
+            renderTracksGrid();
+            loadTrack(currentTrackIndex);
+        }
+
+        function editSongAdmin(id) {
+            const track = songs.find(s => s.id === id);
+            if (!track) return;
+
+            document.getElementById('adminSongEditId').value = track.id;
+            document.getElementById('formSongTitle').value = track.title;
+            document.getElementById('formSongArtist').value = track.artist;
+            document.getElementById('formSongCategory').value = track.category;
+            document.getElementById('formSongAudioUrl').value = track.audioUrl.startsWith('data:') ? '' : track.audioUrl;
+            document.getElementById('formSongCover').value = track.cover;
+            document.getElementById('formSongQuote').value = track.quote;
+            document.getElementById('formSongDuration').value = track.duration;
+
+            document.getElementById('songFormHeading').innerHTML = `<i class="fa-solid fa-pen"></i> ویرایش ترانه: ${track.title}`;
+            document.getElementById('songFormSubmitBtn').textContent = "ذخیره تغییرات ترانه";
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+
+            window.scrollTo({ top: 120, behavior: 'smooth' });
+        }
+
+        function resetSongForm() {
+            document.getElementById('adminSongEditId').value = "";
+            document.getElementById('songAdminForm').reset();
+            uploadedAudioDataUrl = "";
+            document.getElementById('songFormHeading').innerHTML = `<i class="fa-solid fa-plus-circle"></i> افزودن ترانه جدید به آرشیو`;
+            document.getElementById('songFormSubmitBtn').textContent = "ثبت و ذخیره ترانه در آرشیو";
+            document.getElementById('cancelEditBtn').classList.add('hidden');
+        }
+
+        function deleteSongAdmin(id) {
+            const track = songs.find(s => s.id === id);
+            const title = track ? track.title : "ترانه";
+
+            // Simple styled in-app confirmation
+            if (confirm(`آیا از حذف قطعی ترانه «${title}» مطمئن هستید؟`)) {
+                songs = songs.filter(s => s.id !== id);
+                favorites = favorites.filter(favId => favId !== id);
+                saveSongs();
+                localStorage.setItem('koocheh_favs', JSON.stringify(favorites));
+
+                if (currentTrackIndex >= songs.length) {
+                    currentTrackIndex = Math.max(0, songs.length - 1);
+                }
+                loadTrack(currentTrackIndex);
+                renderAdminSongsTable();
+                renderTracksGrid();
+                updateFavoriteCount();
+                showToast(`ترانه «${title}» با موفقیت حذف شد`);
+            }
+        }
+
+        function restoreDefaultSongs() {
+            if (confirm("آیا مایلید تمام ترانه‌های اولیه کافه لاله‌زار بازگردانی شوند؟")) {
+                songs = [...DEFAULT_SONGS];
+                saveSongs();
+                currentTrackIndex = 0;
+                loadTrack(0);
+                renderAdminSongsTable();
+                renderTracksGrid();
+                showToast("ترانه‌های اولیه بازگردانی شدند");
+            }
+        }
+
+        function submitUserSuggestion(e) {
+            e.preventDefault();
+            const title = document.getElementById('sugTitle').value.trim();
+            const artist = document.getElementById('sugArtist').value.trim();
+            const category = document.getElementById('sugCategory').value;
+            const notes = document.getElementById('sugNotes').value.trim();
+            const sender = document.getElementById('sugSender').value.trim() || 'شنونده ناشناس';
+
+            const newSuggestion = {
+                id: Date.now(),
+                title,
+                artist,
+                category,
+                notes,
+                sender,
+                date: new Date().toLocaleDateString('fa-IR')
+            };
+
+            suggestions.unshift(newSuggestion);
+            saveSuggestions();
+            document.getElementById('suggestionForm').reset();
+            showToast("پیشنهاد شما با موفقیت به مدیریت ارسال شد. سپاس از همراهی شما!");
+            setTimeout(() => switchView('home'), 1200);
+        }
+
+        function renderAdminSuggestions() {
+            const list = document.getElementById('adminSuggestionsList');
+            document.getElementById('adminTotalSuggestions').textContent = suggestions.length;
+
+            if (suggestions.length === 0) {
+                list.innerHTML = `<div class="py-8 text-center text-zinc-500 text-xs">هیچ پیشنهادی در صف انتظار وجود ندارد.</div>`;
+                return;
+            }
+
+            list.innerHTML = suggestions.map(s => {
+                let catFa = "سوزناک";
+                if (s.category === 'upbeat') catFa = "شاد";
+                if (s.category === 'majlesi') catFa = "مجلسی";
+
+                return `
+                <div class="glass-card rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-zinc-800 text-right">
+                    <div class="space-y-1 flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-black text-amber-300">${s.title}</span>
+                            <span class="text-xs text-zinc-400">خواننده: ${s.artist}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-zinc-800 text-amber-400">${catFa}</span>
+                        </div>
+                        <p class="text-xs text-zinc-300 font-light">${s.notes || 'بدون توضیحات تکمیلی'}</p>
+                        <div class="text-[10px] text-zinc-500 font-mono">
+                            ارسال‌کننده: ${s.sender} • تاریخ: ${s.date}
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                        <button onclick="approveSuggestion(${s.id})" class="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                            <i class="fa-solid fa-check"></i> افزودن به ترانه‌ها
+                        </button>
+                        <button onclick="rejectSuggestion(${s.id})" class="px-3 py-1.5 rounded-xl bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                            <i class="fa-solid fa-xmark"></i> رد پیشنهاد
+                        </button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function approveSuggestion(id) {
+            const sug = suggestions.find(s => s.id === id);
+            if (!sug) return;
+
+            // Direct convert suggestion into a live song
+            const newSong = {
+                id: Date.now(),
+                title: sug.title,
+                artist: sug.artist,
+                category: sug.category,
+                audioUrl: "",
+                cover: `https://placehold.co/400x400/181520/ffd54f?text=${encodeURIComponent(sug.title)}`,
+                quote: sug.notes || `پیشنهاد شده توسط ${sug.sender}`,
+                duration: 210
+            };
+
+            songs.unshift(newSong);
+            suggestions = suggestions.filter(s => s.id !== id);
+            saveSongs();
+            saveSuggestions();
+            renderAdminSongsTable();
+            renderAdminSuggestions();
+            renderTracksGrid();
+            showToast(`ترانه «${sug.title}» تایید و به آرشیو اضافه شد!`);
+        }
+
+        function rejectSuggestion(id) {
+            suggestions = suggestions.filter(s => s.id !== id);
+            saveSuggestions();
+            renderAdminSuggestions();
+            showToast("پیشنهاد مورد نظر حذف شد");
+        }
+
+        function clearAllSuggestions() {
+            if (confirm("آیا مایلید تمام پیشنهادهای ارسالی حذف شوند؟")) {
+                suggestions = [];
+                saveSuggestions();
+                renderAdminSuggestions();
+                showToast("همه پیشنهادها پاک شدند");
+            }
+        }
+
+        function handlePasswordChange(e) {
+            e.preventDefault();
+            const curr = document.getElementById('currentPassInput').value;
+            const newP = document.getElementById('newPassInput').value;
+            const conf = document.getElementById('confirmPassInput').value;
+            const saved = localStorage.getItem('koocheh_admin_pass') || '1234';
+
+            if (curr !== saved) {
+                showToast("رمز عبور فعلی نادرست است!", "error");
+                return;
+            }
+            if (newP.length < 4) {
+                showToast("رمز عبور جدید باید حداقل ۴ نویسه باشد!", "error");
+                return;
+            }
+            if (newP !== conf) {
+                showToast("رمز جدید و تکرار آن یکسان نیستند!", "error");
+                return;
+            }
+
+            localStorage.setItem('koocheh_admin_pass', newP);
+            document.getElementById('currentPassInput').value = '';
+            document.getElementById('newPassInput').value = '';
+            document.getElementById('confirmPassInput').value = '';
+            showToast("رمز عبور پنل مدیریت با موفقیت تغییر یافت!");
+        }
+
+        let toastTimeout = null;
+        function showToast(message, type = "success") {
+            const toast = document.getElementById('toastNotification');
+            const msgElem = document.getElementById('toastMessage');
+            const icon = document.getElementById('toastIcon');
+
+            msgElem.textContent = message;
+            if (type === "error") {
+                icon.className = "fa-solid fa-triangle-exclamation text-rose-400 text-lg";
+            } else {
+                icon.className = "fa-solid fa-check-circle text-amber-400 text-lg";
+            }
+
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3200);
+        }
+
+        // Keyboard handler
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                togglePlay();
+            }
+        });
+
+        // Window Startup
+        window.onload = function() {
+            initializeData();
+            loadTrack(0);
+            renderTracksGrid();
+        };
+    </script>
+</body>
+</html>
